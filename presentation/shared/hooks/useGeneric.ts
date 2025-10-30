@@ -1,0 +1,16 @@
+
+
+
+export const useGeneric = () => {
+
+    
+
+
+    return {
+        
+    };
+
+
+}
+
+
