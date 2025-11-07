@@ -1,4 +1,4 @@
-import { apiClient } from "@/core/api/apiClient";
+import { API_URL, apiClient } from "@/core/api/apiClient";
 import { Gender, Product } from "../interface/product.interface";
 
 
@@ -26,7 +26,7 @@ export const getProductById = async (id:string):Promise<Product> => {
       
         return {
             ...data,
-            //images:data.images.map((image) => `${API_URL}/files/product/${image}`)
+            images:data.images.map((image) => `${API_URL}/files/product/${image}`)
         };
 
         

@@ -1,4 +1,4 @@
-import { apiClient } from "@/core/api/apiClient";
+import { API_URL, apiClient } from "@/core/api/apiClient";
 import { Product } from "../interface/product.interface";
 
 
@@ -14,12 +14,13 @@ export const getProducts = async (limit = 20, offset = 0) => {
             }
         });
 
-      
+
 
 
         return data.map(product => ({
             ...product,
-            
+            images: product.images.map(
+                (image) => `${API_URL}/files/product/${image}`)
         }));
 
     } catch (error) {
