@@ -1,12 +1,14 @@
-import { Product } from '@/core/products/interface/product.interface';
+import { Gender, Product, Size } from '@/core/products/interface/product.interface';
+import ProductImages from '@/presentation/products/components/ProductImages';
 import { useProduct } from '@/presentation/products/hooks/useProduct';
 import { ThemedView } from '@/presentation/theme/components/themed-view';
+import React, { useEffect } from 'react';
+import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 
 import ThemedButton from '@/presentation/theme/components/ui/ThemedButton';
+import ThemedButtonGroup from '@/presentation/theme/components/ui/ThemedButtonGroup';
 import ThemedTextInput from '@/presentation/theme/components/ui/ThemedTextInput';
 import { Redirect, useLocalSearchParams, useNavigation } from 'expo-router';
-import React, { useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
 const ProductScreen = () => {
@@ -15,22 +17,32 @@ const ProductScreen = () => {
   const navigation = useNavigation();
   const { productQuery, productMutation } = useProduct(`${id}`);
 
-  // ✅ Declarar el formulario ANTES de los returns condicionales
-  const { control, handleSubmit, watch, reset, setValue } = useForm<Product>();
+  // ✅ Declaramos el formulario ANTES
+  const { control, handleSubmit, watch, reset, setValue } = useForm<Product>({
+    defaultValues: {
+      title: '',
+      slug: '',
+      description: '',
+      price: 0,
+      stock: 0,
+      sizes: [],
+      gender: Gender.Unisex,
+      images: []
+    },
+  });
 
+  // ✅ Cuando llega el producto, resetear el formulario
   useEffect(() => {
     if (productQuery.data) {
-      // ✅ Cuando llega el producto, se actualiza el form
       reset(productQuery.data);
       navigation.setOptions({ title: productQuery.data.title });
     }
   }, [productQuery.data]);
 
-  const onSubmit = (data: Product) => {
-    productMutation.mutate(data);
-  };
+ const onSubmit: SubmitHandler<Product> = (data) => {
+  productMutation.mutate(data);
+};
 
-  // ✅ returns condicionales DESPUÉS de la declaración de hooks
   if (productQuery.isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -43,13 +55,19 @@ const ProductScreen = () => {
     return <Redirect href="/(santa-maria-app)/(home)" />;
   }
 
+  // ✅ usar los valores del formulario, no los del producto directo
+  const currentSizes = watch('sizes');
+  const currentGender = watch('gender');
+  const currentImages = watch('images');
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView>
 
+        {/* ✅ Las imágenes ahora toman las del formulario */}
+        <ProductImages images={[...currentImages]} />
 
-
-       <ThemedView style={{ marginHorizontal: 10, marginTop: 20 }}>
+        <ThemedView style={{ marginHorizontal: 10, marginTop: 20 }}>
           <Controller
             control={control}
             name="title"
@@ -101,7 +119,7 @@ const ProductScreen = () => {
                 placeholder="Precio"
                 style={{ flex: 1 }}
                 value={value?.toString()}
-                onChangeText={(text) => onChange(text)}
+                onChangeText={(text) => onChange(Number(text))}
                 keyboardType="numeric"
               />
             )}
@@ -115,20 +133,37 @@ const ProductScreen = () => {
                 placeholder="Inventario"
                 style={{ flex: 1 }}
                 value={value?.toString()}
-                onChangeText={(text) => onChange(text)}
+                onChangeText={(text) => onChange(Number(text))}
                 keyboardType="numeric"
               />
             )}
           />
         </ThemedView>
 
- 
+        <ThemedView style={{ marginHorizontal: 10 }}>
 
-        
+          {/* ✅ Talllas conectadas con el watch */}
+          <ThemedButtonGroup
+            options={['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']}
+            selectedOptions={currentSizes}
+            onSelect={(selectedSize) => {
+              const newSizesValue = currentSizes.includes(selectedSize as Size)
+                ? currentSizes.filter((s) => s !== selectedSize)
+                : [...currentSizes, selectedSize];
 
+              setValue('sizes', newSizesValue as  Size[]);
+            }}
+          />
 
+          {/* ✅ Género conectado con el watch */}
+          <ThemedButtonGroup
+            options={['kid', 'men', 'women', 'unisex']}
+            selectedOptions={[currentGender]}
+            onSelect={(selectedOption) =>setValue('gender', selectedOption as Gender )}
+          />
 
-          
+        </ThemedView>
+
         <View style={{ marginHorizontal: 10, marginBottom: 50, marginTop: 20 }}>
           <ThemedButton icon="save-outline" onPress={handleSubmit(onSubmit)}>
             Guardar

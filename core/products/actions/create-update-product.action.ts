@@ -23,6 +23,7 @@ const updateProduct = async (product: Partial<Product>) => {
 
     return data;
   } catch (error) {
+        console.log(error);
     throw new Error("Error al actualizar el producto");
   }
 };

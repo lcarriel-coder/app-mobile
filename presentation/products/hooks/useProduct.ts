@@ -20,12 +20,15 @@ export const useProduct = (productId: string) => {
   //Mutacion
 
   const productMutation = useMutation({
+
     mutationFn: async (data: Product) => updateCreateProduct({...data,
         id:productIdRef.current
     }),
 
     onSuccess(data: Product) {
      
+      console.log("Onsuccess", data);
+  
       productIdRef.current = data.id; // esto es para los id que son "new"
 
        //Invalidar products queries
